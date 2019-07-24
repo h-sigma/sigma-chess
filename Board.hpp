@@ -3,6 +3,9 @@
 
 #include <array>    
 
+#include "Coin.hpp"
+#include "ResourceHolder.hpp"
+#include "ResourceIdentifier.hpp"
 #include "Types.hpp"
 
 #include <SFML/Graphics/Texture.hpp>
@@ -17,60 +20,48 @@ namespace sf{
 
 class Board : public sf::Transformable , public sf::Drawable , private sf::NonCopyable
 {
+    //constructors
+    public:     
+        explicit Board(sf::RenderWindow* window, TextureHolder* holder, int tsize);
+
+    //operations on board
+    public:     
+        void set(sf::Vector2u pos, Piece piece);
+        void move( sf::Vector2u from, sf::Vector2u to);
+        void capture( sf::Vector2u at);
+        void setLast(sf::Vector2i from, sf::Vector2i to);
+        void setSelected(sf::Vector2i at);
+
+    //sfml handlers
     public:
-        
-    public:     //constructors
-        explicit Board();
-        explicit Board(const std::array<Piece , 64>&);
-        explicit Board( Board&& );
-    public:     //publically callable members
-        void run();
-    private:    //lifetime of board
+        void handleEvent(const sf::Event& event);
+
+    //utility for internal use
+    private:    
         void loadResources();
         void resetBoard();
-
-        bool handleEvents(const sf::Event& event);
-        bool update(sf::Time time);
-        void render();
-
-        virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-    private:    //operations on board
-        Piece get(uint8_t col, uint8_t row) const;
-        void set(uint8_t col, uint8_t row, Piece piece);
-        void move(uint8_t fromcol, uint8_t fromrow, uint8_t tocol, uint8_t torow);
+        sf::Vector2i getMouseToFileRank(const sf::Event& event) const;
+        sf::Texture createBoardBack() const;
+    
+    //overriden members
     private:
-        enum row : uint8_t{
-            A = 0 , B , C , D , E , F , G , H
-        };
+        virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    
+    //enums
+    private:
         enum colors : uint8_t{
             BlackTile = 0 , WhiteTile, LastFromTile, LastToTile, Selected, Count
         };
+    
+    //data members
     private:
-        std::array<bool, 64> board_back = {
-            true, false, true, false, true, false, true, false,
-            false, true, false, true, false, true, false, true,
-            true, false, true, false, true, false, true, false,
-            false, true, false, true, false, true, false, true,
-            true, false, true, false, true, false, true, false,
-            false, true, false, true, false, true, false, true,
-            true, false, true, false, true, false, true, false,
-            false, true, false, true, false, true, false, true
-        };
-    private:
-        sf::RenderWindow mWindow;
-        int8_t mLastFrom, mLastTo, mSelected;
+        sf::RenderWindow* mWindow;
+        TextureHolder* mTextureHolder;
+        int tile_size; 
+        sf::Vector2i mLastFrom, mLastTo, mSelected;
         std::array<sf::Color, colors::Count> mColors;
-        std::array<sf::Texture , Piece::totalPieces> mTexture;
-        std::array<sf::Sprite , Piece::totalPieces> mPieces;
-        std::array<Piece , 64> mBoard;
-        const float tile_size; 
-        /*
-        *   Board to array co-ordinates: (Uses enum row)
-        *   a1 = [A][0U]
-        *   h1 = [H][0U]
-        *   a8 = [A][7U]
-        *   h6 = [H][5U]
-        */
+        std::vector<Coin> mPieces;
+        sf::Texture mBoardBackground;
 };
 
 #endif

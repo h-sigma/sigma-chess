@@ -2,176 +2,184 @@
 #include "Utility.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/System/Time.hpp>
 
-Board::Board() 
-: mWindow(sf::VideoMode(600,600) , "Chess GUI", sf::Style::Close )
-, mLastFrom(-1) 
-, mLastTo(-1)
-, mSelected(-1)
-, mColors{ sf::Color::Green , sf::Color::White , sf::Color(0, 0, 50, 150) , sf::Color(0, 0, 100, 200), sf::Color(200, 100 , 0) }
-, tile_size(60.f)
+Board::Board( sf::RenderWindow* window, TextureHolder* holder, int tsize) 
+: mWindow(window )
+, mTextureHolder( holder )
+, tile_size(tsize)
+, mLastFrom(-1 , -1) 
+, mLastTo(-1 , -1)
+, mSelected(-1 , -1)
+, mColors{ sf::Color::Green , sf::Color::White , sf::Color(100, 100, 150) , sf::Color(100, 100, 250), sf::Color(200, 100 , 50) }
+, mBoardBackground(createBoardBack())
 {
-    mBoard.fill(Piece::EMPTY);  //invariant initialization shouldn't depend on another member's definition
     loadResources();
     resetBoard();
 }
 
-void Board::loadResources()
+
+void Board::set(sf::Vector2u pos, Piece piece)
 {
-    mTexture[Piece::blackBishop].loadFromFile("Sprites/blackBishop.png");
-    mTexture[Piece::blackKing].loadFromFile("Sprites/blackKing.png");
-    mTexture[Piece::blackKnight].loadFromFile("Sprites/blackKnight.png");
-    mTexture[Piece::blackPawn].loadFromFile("Sprites/blackPawn.png");
-    mTexture[Piece::blackQueen].loadFromFile("Sprites/blackQueen.png");
-    mTexture[Piece::blackRook].loadFromFile("Sprites/blackRook.png");
-    mTexture[Piece::whiteBishop].loadFromFile("Sprites/whiteBishop.png");
-    mTexture[Piece::whiteKing].loadFromFile("Sprites/whiteKing.png");
-    mTexture[Piece::whiteKnight].loadFromFile("Sprites/whiteKnight.png");
-    mTexture[Piece::whitePawn].loadFromFile("Sprites/whitePawn.png");
-    mTexture[Piece::whiteQueen].loadFromFile("Sprites/whiteQueen.png");
-    mTexture[Piece::whiteRook].loadFromFile("Sprites/whiteRook.png");
+    mPieces.push_back( Coin{piece , this, tile_size , pos , mWindow , mTextureHolder} );
+}
 
-    mPieces[Piece::blackBishop].setTexture(mTexture[Piece::blackBishop]);
-    mPieces[Piece::blackKing].setTexture(mTexture[Piece::blackKing]);
-    mPieces[Piece::blackKnight].setTexture(mTexture[Piece::blackKnight]);
-    mPieces[Piece::blackPawn].setTexture(mTexture[Piece::blackPawn]);
-    mPieces[Piece::blackQueen].setTexture(mTexture[Piece::blackQueen]);
-    mPieces[Piece::blackRook].setTexture(mTexture[Piece::blackRook]);
-    mPieces[Piece::whiteBishop].setTexture(mTexture[Piece::whiteBishop]);
-    mPieces[Piece::whiteKing].setTexture(mTexture[Piece::whiteKing]);
-    mPieces[Piece::whiteKnight].setTexture(mTexture[Piece::whiteKnight]);
-    mPieces[Piece::whitePawn].setTexture(mTexture[Piece::whitePawn]);
-    mPieces[Piece::whiteQueen].setTexture(mTexture[Piece::whiteQueen]);
-    mPieces[Piece::whiteRook].setTexture(mTexture[Piece::whiteRook]);
+void Board::move( sf::Vector2u from, sf::Vector2u to)
+{
+    mLastFrom = static_cast<sf::Vector2i>(from);
+    mLastTo = static_cast<sf::Vector2i>(to);
+    mSelected = sf::Vector2i{-1 , -1};
 
+    capture(to);
+
+    for( auto& piece : mPieces)
+        piece.move(from, to);
+    
+}
+
+void Board::capture(sf::Vector2u at)
+{
+    auto ptr = std::remove_if( mPieces.begin() , mPieces.end() , [& at](const Coin& ptr){
+        if(at == ptr.getFileRank())
+            return true;
+        return false;
+    });
+    mPieces.erase(ptr, mPieces.end());
+}
+
+void Board::setLast(sf::Vector2i from, sf::Vector2i to)
+{
+    mLastFrom = from;
+    mLastTo = to;
+}
+
+void Board::setSelected(sf::Vector2i at)
+{
+    mSelected = at;
+}
+
+void Board::handleEvent(const sf::Event& event) 
+{
+    sf::Vector2i vec = getMouseToFileRank(event);
+    if(vec.x == -1 && event.type == sf::Event::MouseButtonPressed)
+        return;
     for(auto& piece : mPieces)
     {
-        fixScale(piece , tile_size , tile_size);
-        //centerOrigin(piece);
+        piece.handleEvent(event , static_cast<sf::Vector2u>(vec) );
     }
+}
+
+
+void Board::loadResources()
+{
+    mTextureHolder->load(Textures::blackBishop, "Sprites/blackBishop.png");
+    mTextureHolder->load(Textures::blackKing, "Sprites/blackKing.png");
+    mTextureHolder->load(Textures::blackKnight, "Sprites/blackKnight.png");
+    mTextureHolder->load(Textures::blackPawn, "Sprites/blackPawn.png");
+    mTextureHolder->load(Textures::blackQueen, "Sprites/blackQueen.png");
+    mTextureHolder->load(Textures::blackRook, "Sprites/blackRook.png");
+    
+    mTextureHolder->load(Textures::whiteBishop, "Sprites/whiteBishop.png");
+    mTextureHolder->load(Textures::whiteKing, "Sprites/whiteKing.png");
+    mTextureHolder->load(Textures::whiteKnight, "Sprites/whiteKnight.png");
+    mTextureHolder->load(Textures::whitePawn, "Sprites/whitePawn.png");
+    mTextureHolder->load(Textures::whiteQueen, "Sprites/whiteQueen.png");
+    mTextureHolder->load(Textures::whiteRook, "Sprites/whiteRook.png"); 
+
+    mTextureHolder->get(Textures::blackBishop).setSmooth(true);
+    mTextureHolder->get(Textures::blackKing).setSmooth(true);
+    mTextureHolder->get(Textures::blackKnight).setSmooth(true);
+    mTextureHolder->get(Textures::blackPawn).setSmooth(true);
+    mTextureHolder->get(Textures::blackQueen).setSmooth(true);
+    mTextureHolder->get(Textures::blackRook).setSmooth(true);
+    
+    mTextureHolder->get(Textures::whiteBishop).setSmooth(true);
+    mTextureHolder->get(Textures::whiteKing).setSmooth(true);
+    mTextureHolder->get(Textures::whiteKnight).setSmooth(true);
+    mTextureHolder->get(Textures::whitePawn).setSmooth(true);
+    mTextureHolder->get(Textures::whiteQueen).setSmooth(true);
+    mTextureHolder->get(Textures::whiteRook).setSmooth(true);
+    
 
 }
 
 void Board::resetBoard()
 {
-    mBoard.fill(Piece::EMPTY); //clear board
+    mPieces.clear(); 
 
-    set(A , 8u , Piece::blackRook);     //note that 1..8 indexing is used
-    set(B , 8u , Piece::blackKnight);
-    set(C , 8u , Piece::blackBishop);
-    set(D , 8u , Piece::blackQueen);
-    set(E , 8u , Piece::blackKing);
-    set(F , 8u , Piece::blackBishop);
-    set(G , 8u , Piece::blackKnight);
-    set(H , 8u , Piece::blackRook);
+    set( {0u , 7u} , Piece::blackRook);     //note that 1..8 indexing is used
+    set( {1u , 7u} , Piece::blackKnight);
+    set( {2u , 7u} , Piece::blackBishop);
+    set( {3u , 7u} , Piece::blackQueen);
+    set( {4u , 7u} , Piece::blackKing);
+    set( {5u , 7u} , Piece::blackBishop);
+    set( {6u , 7u} , Piece::blackKnight);
+    set( {7u , 7u} , Piece::blackRook);
 
-    for(uint8_t i = 0 ; i <= 7 ; i++)   //stronger coupling here as it's not dependent on enum row
-        set(i , 2u , Piece::whitePawn);
+    for(uint8_t i = 0u ; i <= 7u ; i++)   //stronger coupling here as it's not dependent on enum row
+        set( {i , 6u} , Piece::blackPawn);
     
-    set(A , 1u , Piece::whiteRook);
-    set(B , 1u , Piece::whiteKnight);
-    set(C , 1u , Piece::whiteBishop);
-    set(D , 1u , Piece::whiteQueen);
-    set(E , 1u , Piece::whiteKing);
-    set(F , 1u , Piece::whiteBishop);
-    set(G , 1u , Piece::whiteKnight);
-    set(H , 1u , Piece::whiteRook);
+    set( {0u , 0u} , Piece::whiteRook);
+    set( {1u , 0u} , Piece::whiteKnight);
+    set( {2u , 0u} , Piece::whiteBishop);
+    set( {3u , 0u} , Piece::whiteQueen);
+    set( {4u , 0u} , Piece::whiteKing);
+    set( {5u , 0u} , Piece::whiteBishop);
+    set( {6u , 0u} , Piece::whiteKnight);
+    set( {7u , 0u} , Piece::whiteRook);
 
-    for(uint8_t i = 0 ; i <= 7 ; i++)   //stronger coupling here as it's not dependent on enum row
-        set(i , 7u , Piece::blackPawn);
-}
+    for(uint8_t i = 0u ; i <= 7u ; i++)   //stronger coupling here as it's not dependent on enum row
+        set( {i , 1u} , Piece::whitePawn);
 
-void Board::run()
-{
-    sf::Clock clock;
-    sf::Time dt = sf::Time::Zero;
-    sf::Event event;
-    const sf::Time perframe = sf::seconds(1/60.f);
-    bool quit = false;
-    while(mWindow.isOpen())
+    for(auto& piece : mPieces)
     {
-        dt += clock.restart();
-        while(dt >= perframe)
-        {
-            dt -= perframe;
-            quit = handleEvents(event);
-            update(perframe);
-        }
-        render();
-        if(quit)
-            mWindow.close();
+        piece.setSize(tile_size);
+        //centerOrigin(piece);
     }
 }
 
-bool Board::handleEvents(const sf::Event&)
+sf::Vector2i Board::getMouseToFileRank(const sf::Event& event) const
 {
-    sf::Event evt;
-    while(mWindow.pollEvent(evt))
-    {
-        if(evt.type == sf::Event::KeyReleased && evt.key.code == sf::Keyboard::Escape )
-            return true;
-        if(evt.type == sf::Event::Closed)
-            return true;
-        if(evt.type == sf::Event::MouseButtonPressed)
-        {
-            sf::Vector2i vec = sf::Mouse::getPosition(mWindow);
-            vec -= static_cast<sf::Vector2i> (this->getPosition() );
-            if(vec.x < 0 || vec.y < 0)
-                continue;
+    sf::Vector2i vec {event.mouseButton.x, event.mouseButton.y};
 
-            uint8_t row = vec.y / tile_size;
-            uint8_t col = vec.x / tile_size;
+    vec -= static_cast<sf::Vector2i>( this->getPosition() );
 
-            if( row >= 8 || col >= 8)
-                continue;
+    vec.x = vec.x / tile_size;
+    vec.y = vec.y / tile_size;
 
-            if(mSelected == -1)
-            {   //select the piece
-                mSelected = row*8 + col;
-            }
-            else
-            {
-                if(mSelected == row*8 + col)    //clicked the same piece again
-                    mSelected = -1;
-                else
-                {
-                    move(7 - mSelected%8 , 8 - mSelected/8, 7 - col, 8 - row);
-                }
-                
-            }
-            
-        }
-    }
-    return false;
+    vec.y = 7 - vec.y;
+
+    if(vec.x < 0 || vec.x >= 8 || vec.y < 0 || vec.y >= 8 )
+    return {-1 , -1};
+
+    return vec;
 }
 
-bool Board::update(sf::Time)
+sf::Texture Board::createBoardBack() const
 {
-    return false;
-}
 
-void Board::render()
-{
-    mWindow.clear();
-    mWindow.draw(*this);
-    mWindow.display();
-}
+    sf::RenderTexture target; 
+    target.create(tile_size * 8 , tile_size * 8);
 
-void Board::draw(sf::RenderTarget& target, sf::RenderStates states) const
-{
-    //draw board
-    static std::array<sf::RectangleShape, colors::Count> tile;
+    std::array<bool, 64> board_back = {
+            true, false, true, false, true, false, true, false,
+            false, true, false, true, false, true, false, true,
+            true, false, true, false, true, false, true, false,
+            false, true, false, true, false, true, false, true,
+            true, false, true, false, true, false, true, false,
+            false, true, false, true, false, true, false, true,
+            true, false, true, false, true, false, true, false,
+            false, true, false, true, false, true, false, true
+        };
+
+    static std::array<sf::RectangleShape, 2> tile;
     tile.fill( sf::RectangleShape{sf::Vector2f(tile_size, tile_size)} );
 
-    tile[colors::BlackTile].setFillColor(mColors[colors::BlackTile]);
-    tile[colors::WhiteTile].setFillColor(mColors[colors::WhiteTile]);
-    tile[colors::LastFromTile].setFillColor(mColors[colors::LastFromTile]);
-    tile[colors::LastToTile].setFillColor(mColors[colors::LastToTile]);
-    tile[colors::Selected].setFillColor(mColors[colors::Selected]);
-    
+    tile[0].setFillColor(mColors[colors::BlackTile]);
+    tile[1].setFillColor(mColors[colors::WhiteTile]); 
 
     float x = 0.f , y = 0.f;
 
@@ -180,67 +188,69 @@ void Board::draw(sf::RenderTarget& target, sf::RenderStates states) const
         x = tile_size * (arg%8);
         y = tile_size * (arg/8);
 
-        states.blendMode = sf::BlendAlpha;
-
         if(board_back[arg] == false)
         {
-            tile[colors::BlackTile].setPosition( x ,y);
-            target.draw(tile[colors::BlackTile] , states);
+            tile[0].setPosition( x ,y);
+            target.draw(tile[0]);
         }
         else
         {
-            tile[colors::WhiteTile].setPosition( x ,y);
-            target.draw(tile[colors::WhiteTile] , states);
+            tile[1].setPosition( x ,y);
+            target.draw(tile[1]);
         }
-
-        int8_t normalarg = 63 - arg; //the indexing the normal board uses
-
-        if(normalarg == mLastFrom)
-        {
-            tile[colors::LastFromTile].setPosition( x ,y);
-            target.draw(tile[colors::LastFromTile] , states);
-        }
-        if(normalarg == mLastTo)
-        {
-            tile[colors::LastToTile].setPosition( x ,y);
-            target.draw(tile[colors::LastToTile] , states);
-        }
-        if(arg == mSelected)
-        {
-            tile[colors::Selected].setPosition( x ,y);
-            target.draw(tile[colors::Selected] , states);
-        }
-        
-        if(mBoard[normalarg] == Piece::EMPTY)
-        { /*do nothing*/ }
-        else
-        {
-            states.blendMode = sf::BlendAlpha;
-            sf::Sprite piece = mPieces[ mBoard[normalarg] ];
-            piece.setPosition(x, y );
-            target.draw(piece, states);
-        }
-        
     }
 
-}
+    target.setSmooth(true);
 
-Piece Board::get(uint8_t col, uint8_t row) const
-{
-    return mBoard[col + ((row-1) * 8)]; //please note that the "-1" converts 1..8 indexing to 0..7
-}
+    target.display();
 
-void Board::set(uint8_t col, uint8_t row, Piece piece)
-{
-    mBoard[col + ((row - 1) * 8)] = piece;//please note that the "-1" converts 1..8 indexing to 0..7
-}
+    return std::move(target.getTexture());
+}   
 
-void Board::move(uint8_t fromcol, uint8_t fromrow, uint8_t tocol, uint8_t torow)
+
+void Board::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-    Piece temp = get(fromcol , fromrow);
-    set(fromcol , fromrow , Piece::EMPTY);
-    set(tocol, torow, temp );
-    mLastFrom = fromcol + (fromrow-1)*8;
-    mLastTo = tocol + (torow-1)*8;
-    mSelected = -1;
+    states.transform *= getTransform();
+    //draw board
+    target.draw(sf::Sprite{mBoardBackground}, states);
+
+    //highlight tiles
+    static std::array<sf::RectangleShape, 3> tile;
+    tile.fill( sf::RectangleShape{sf::Vector2f(tile_size, tile_size)} );
+
+    tile[0].setFillColor(mColors[colors::LastFromTile]);
+    tile[1].setFillColor(mColors[colors::LastToTile]);
+    tile[2].setFillColor(mColors[colors::Selected]);
+
+    states.blendMode = sf::BlendAlpha;
+    if(mLastFrom.x > -1)
+    {
+        tile[0].setPosition( sf::Vector2f(mLastFrom.x * tile_size, (7 - mLastFrom.y ) * tile_size)) ;
+        target.draw(tile[0] , states);
+    }
+    
+    if(mLastTo.x > -1)
+    {
+        tile[1].setPosition( sf::Vector2f(mLastTo.x * tile_size, (7 - mLastTo.y ) * tile_size));
+        target.draw(tile[1] , states);
+    }
+    
+    if(mSelected.x > -1)
+    {
+        tile[2].setPosition( sf::Vector2f(mSelected.x * tile_size, (7 - mSelected.y ) * tile_size));
+        target.draw(tile[2] , states);
+    }
+
+    const Coin* ptr = nullptr;
+    for(const auto& piece : mPieces)
+    {
+        if( piece.isGrabbed() )
+            ptr = &piece;
+        else
+            target.draw(piece, states);
+    }
+
+    if(ptr != nullptr)
+        target.draw( *ptr, states);
+
 }

@@ -1,14 +1,13 @@
-#include <SFML/Graphics.hpp>
 #include <exception>
 #include <iostream>
-#include "Board.hpp"
+#include "Application.hpp"
 
 int main()
 {
     try
     {
-        Board board;
-        board.run();
+        Application app;
+        app.run();
     }
     catch(const std::exception& e)
     {

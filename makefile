@@ -8,16 +8,20 @@ CXXFLAGS = -W -Wall -Wno-return-type
 
 LINKERFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
-DEPENDS = GUIMain.o Board.o Utility.o
+DEPENDS = GUIMain.o Application.o Board.o Utility.o Coin.o
 
 Main: ${DEPENDS}
 	${CXX} -g -o gui ${CXXFLAGS} ${DEPENDS} ${LINKERFLAGS}
 
-GUIMain.o : Board.hpp
+GUIMain.o : Application.hpp
 
-Board.o : Board.hpp Types.hpp Utility.hpp
+Application.o : Board.hpp
 
-Utility.o : Utility.hpp
+Board.o : Types.hpp Utility.hpp ResourceHolder.hpp ResourceIdentifier.hpp 
+
+Coin.o : Types.hpp Utility.hpp ResourceHolder.hpp ResourceIdentifier.hpp
+
+Utility.o : ResourceIdentifier.hpp Types.hpp
 
 clean :
 	-rm gui ${DEPENDS}
