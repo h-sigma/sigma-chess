@@ -32,7 +32,7 @@ void Board::loadResources()
     mTexture[Piece::whiteKnight].loadFromFile("Sprites/whiteKnight.png");
     mTexture[Piece::whitePawn].loadFromFile("Sprites/whitePawn.png");
     mTexture[Piece::whiteQueen].loadFromFile("Sprites/whiteQueen.png");
-    mTexture[Piece::whiteRook].loadFromFile("Sprites/whiteRook.png");https://github.com/h-sigma/sigma-chess
+    mTexture[Piece::whiteRook].loadFromFile("Sprites/whiteRook.png");
 
     mPieces[Piece::blackBishop].setTexture(mTexture[Piece::blackBishop]);
     mPieces[Piece::blackKing].setTexture(mTexture[Piece::blackKing]);
