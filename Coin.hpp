@@ -16,6 +16,7 @@ class Coin : public sf::Transformable, public sf::Drawable
         explicit Coin(Piece , Board*, int , sf::Vector2u , sf::RenderWindow* , TextureHolder*);
     public:
         void setSize(float size);
+        void setGrabbed(bool val);
     // public:
     //     virtual std::vector<sf::Vector2i> genLegalMoves() = 0;
     //     virtual uint64_t genAttacks() = 0;

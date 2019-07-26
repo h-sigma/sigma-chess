@@ -1,7 +1,7 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
-#include "Board.hpp"
+#include "BoardAPI.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "ResourceHolder.hpp"
 
@@ -22,7 +22,7 @@ class Application
     private:
         sf::RenderWindow mWindow;
         TextureHolder mTextureHolder;
-        Board mBoard;
+        BoardAPI mBoard;
 };
 
 #endif

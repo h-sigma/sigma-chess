@@ -63,13 +63,20 @@ void Board::setSelected(sf::Vector2i at)
 
 void Board::handleEvent(const sf::Event& event) 
 {
-    sf::Vector2i vec = getMouseToFileRank(event);
-    if(vec.x == -1 && event.type == sf::Event::MouseButtonPressed)
-        return;
-    for(auto& piece : mPieces)
+    if(event.type == sf::Event::MouseLeft)  
+        for(auto& piece : mPieces)
+            piece.setGrabbed(false);
+    else
     {
-        piece.handleEvent(event , static_cast<sf::Vector2u>(vec) );
-    }
+        sf::Vector2i vec = getMouseToFileRank(event);
+        if(vec.x == -1)
+            return;
+        for(auto& piece : mPieces)
+        {
+            piece.handleEvent(event , static_cast<sf::Vector2u>(vec) );
+        }
+            
+    }  
 }
 
 

@@ -31,11 +31,9 @@ class Board : public sf::Transformable , public sf::Drawable , private sf::NonCo
         void capture( sf::Vector2u at);
         void setLast(sf::Vector2i from, sf::Vector2i to);
         void setSelected(sf::Vector2i at);
-
     //sfml handlers
     public:
         void handleEvent(const sf::Event& event);
-
     //utility for internal use
     private:    
         void loadResources();
@@ -52,7 +50,6 @@ class Board : public sf::Transformable , public sf::Drawable , private sf::NonCo
         enum colors : uint8_t{
             BlackTile = 0 , WhiteTile, LastFromTile, LastToTile, Selected, Count
         };
-    
     //data members
     private:
         sf::RenderWindow* mWindow;
@@ -63,5 +60,6 @@ class Board : public sf::Transformable , public sf::Drawable , private sf::NonCo
         std::vector<Coin> mPieces;
         sf::Texture mBoardBackground;
 };
+
 
 #endif

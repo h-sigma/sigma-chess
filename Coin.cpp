@@ -2,6 +2,8 @@
 #include "Utility.hpp"
 #include "Board.hpp"
 
+#include <iostream>
+
 Coin::Coin(Piece piece, Board* board, int size, sf::Vector2u cords, sf::RenderWindow* window, TextureHolder* tholder) 
 : mType(piece)
 , mBoard(board)
@@ -60,10 +62,16 @@ bool Coin::isGrabbed() const
     return mIsGrabbed;
 }
 
+void Coin::setGrabbed(bool val) 
+{
+    mIsGrabbed = val;
+}
+
 void Coin::handleEvent( const sf::Event& event, sf::Vector2u pos)
 {
-    if(event.type == sf::Event::MouseButtonReleased)
+    if(event.type == sf::Event::MouseButtonReleased )
     {
+        //std::cout << "Released: " << std::endl;
         if(mIsGrabbed && pos != mPos)
         {
             mIsGrabbed = false;
@@ -75,24 +83,20 @@ void Coin::handleEvent( const sf::Event& event, sf::Vector2u pos)
         else if(mIsGrabbed && pos == mPos)
         {
             mBoard->setSelected( {-1, -1} );
+            mIsGrabbed = false;
         }
-        mIsGrabbed = false;
     }
     else if(event.type == sf::Event::MouseButtonPressed)
     {
-        if(mIsGrabbed)
+        if(mIsGrabbed)  //grabbed but another mouse key is clicked
         {
             mIsGrabbed = false;
             mBoard->setSelected( {-1,-1} );
         }
-        else if(pos == mPos && !mIsGrabbed)
+        else if(pos == mPos && !mIsGrabbed) //released back
         {
             mIsGrabbed = true;
             mBoard->setSelected( static_cast<sf::Vector2i>(mPos) );
-        }
-        else
-        {
-            mIsGrabbed = false;
         }
     }
 }

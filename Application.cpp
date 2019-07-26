@@ -36,7 +36,7 @@ void Application::processInput()
     sf::Event event;
     while(mWindow.pollEvent(event))
     {
-        if(event.type == sf::Event::Closed)
+        if(event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
             mWindow.close();
         mBoard.handleEvent(event);
     }
