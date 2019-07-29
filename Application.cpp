@@ -1,6 +1,9 @@
 #include "Application.hpp"
+#include "UCI.hpp"
 #include <SFML/System/Time.hpp>
 #include <SFML/Window/Event.hpp>
+#include <chrono>
+#include <iostream>
 
 Application::Application()
 : mWindow( sf::VideoMode(60*8, 60*8), "E4E5", sf::Style::Close)
@@ -14,6 +17,12 @@ void Application::run()
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
     sf::Time TimePerFrame = sf::seconds(1/60.f);
 
+	std::cout << "Starting now...";
+    std::chrono::system_clock::time_point  start = std::chrono::system_clock::now();
+	bool result = UCI::isReady();
+	if(result == true)
+		std::cout << "Time elapsed: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() << std::endl;
+
 	while (mWindow.isOpen())
 	{
 		sf::Time dt = clock.restart();
@@ -24,7 +33,6 @@ void Application::run()
 
 			processInput();
 			update(TimePerFrame);
-
 		}
 
 		render();

@@ -2,6 +2,8 @@
 #include "Utility.hpp"
 #include "Board.hpp"
 
+#include "UCI.hpp"
+
 #include <iostream>
 
 Coin::Coin(Piece piece, Board* board, int size, sf::Vector2u cords, sf::RenderWindow* window, TextureHolder* tholder) 

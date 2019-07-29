@@ -9,7 +9,7 @@ namespace sf{
     class RenderTarget;
     class RenderStates;
     class Event;
-};
+}
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
