@@ -2,6 +2,7 @@
 #define BOARDAPI_HPP
 
 #include "Board.hpp"
+#include "Types.hpp"
 
 namespace sf{
     class RenderWindow;
@@ -19,7 +20,7 @@ namespace sf{
 class BoardAPI : public sf::Transformable, public sf::Drawable
 {
     public:
-        BoardAPI(sf::RenderWindow* window, TextureHolder* holder, int tsize);
+        BoardAPI(sfmlContext context);
     public:
         void set(sf::Vector2u pos, Piece piece);
         void move( sf::Vector2u from, sf::Vector2u to);

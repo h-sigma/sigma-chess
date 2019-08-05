@@ -3,17 +3,18 @@
 
 #include <vector>
 
-class Board;
-
 #include <SFML/Graphics.hpp>
+
 #include "Types.hpp"
 #include "ResourceHolder.hpp"
 #include "ResourceIdentifier.hpp"
 
+class Board;
+
 class Coin : public sf::Transformable, public sf::Drawable
 {
     public:
-        explicit Coin(Piece , Board*, int , sf::Vector2u , sf::RenderWindow* , TextureHolder*);
+        explicit Coin(Piece , Board*, sf::Vector2u , sfmlContext);
     public:
         void setSize(float size);
         void setGrabbed(bool val);
@@ -32,9 +33,8 @@ class Coin : public sf::Transformable, public sf::Drawable
         Piece mType;
         Board* mBoard;
         sf::Vector2u mPos;
-        int tile_size;
+        sfmlContext mContext;
     private:
-        sf::RenderWindow* mWindow;
         sf::Sprite mSprite;
         bool mIsGrabbed;
 

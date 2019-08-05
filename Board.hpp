@@ -2,6 +2,8 @@
 #define GUI_BOARD_HPP
 
 #include <array>    
+#include <functional>
+#include <optional>
 
 #include "Coin.hpp"
 #include "ResourceHolder.hpp"
@@ -19,18 +21,20 @@ namespace sf{
 }
 
 class Board : public sf::Transformable , public sf::Drawable , private sf::NonCopyable
-{
+{   
+    public:
+        
     //constructors
     public:     
-        explicit Board(sf::RenderWindow* window, TextureHolder* holder, int tsize);
+        explicit Board(sfmlContext context);
 
     //operations on board
     public:     
         void set(sf::Vector2u pos, Piece piece);
         void move( sf::Vector2u from, sf::Vector2u to);
         void capture( sf::Vector2u at);
-        void setLast(sf::Vector2i from, sf::Vector2i to);
-        void setSelected(sf::Vector2i at);
+        void setLast(std::optional<sf::Vector2u>, std::optional<sf::Vector2u>);
+        void setSelected(std::optional<sf::Vector2u>);
     //sfml handlers
     public:
         void handleEvent(const sf::Event& event);
@@ -52,10 +56,9 @@ class Board : public sf::Transformable , public sf::Drawable , private sf::NonCo
         };
     //data members
     private:
-        sf::RenderWindow* mWindow;
-        TextureHolder* mTextureHolder;
+        sfmlContext mContext;
         int tile_size; 
-        sf::Vector2i mLastFrom, mLastTo, mSelected;
+        std::optional<sf::Vector2u> mLastFrom, mLastTo, mSelected;
         std::array<sf::Color, colors::Count> mColors;
         std::vector<Coin> mPieces;
         sf::Texture mBoardBackground;

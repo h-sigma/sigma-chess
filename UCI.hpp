@@ -21,9 +21,9 @@ namespace UCI{
 
     /*
     * position [fen  | startpos ]  moves  .... 
-	* set up the position described in fenstring on the internal board and
+	* set up the position described in fenstring_view on the internal board and
 	* play the moves on the internal chess board.
-	* if the game was played  from the start position the string "startpos" will be sent
+	* if the game was played  from the start position the string_view "startpos" will be sent
 	* Note: no "new" command is needed. However, if this position is from a different game than
 	* the last position sent to the engine, the GUI should have sent a "ucinewgame" inbetween.
     */

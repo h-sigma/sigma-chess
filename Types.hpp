@@ -3,8 +3,12 @@
 
 #include <cstdint>
 #include <utility>
+#include <functional>
 
 #include "SFML/Window/Event.hpp"
+#include "SFML/Graphics/RenderWindow.hpp"
+#include "ResourceHolder.hpp"
+#include "ResourceIdentifier.hpp"
 
 
 enum Piece : uint8_t{
@@ -12,6 +16,12 @@ enum Piece : uint8_t{
             whitePawn, whiteQueen, whiteRook , totalPieces, EMPTY = (0b11111111)
 };
 
+struct sfmlContext{
+        sf::RenderWindow* mWindow;
+        TextureHolder* mTextureHolder;
+        std::function<bool(sf::Vector2u from , sf::Vector2u to)> pieceDropCall = nullptr;
+        int tilesize = 0;
+};
 
 /*  
 * The enum for board rows that class Board uses.

@@ -5,8 +5,8 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
-BoardAPI::BoardAPI(sf::RenderWindow* window, TextureHolder* holder, int tsize)
-: mBoard(window, holder, tsize)
+BoardAPI::BoardAPI(sfmlContext context)
+: mBoard(context)
 {
 
 }

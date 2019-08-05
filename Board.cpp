@@ -3,17 +3,17 @@
 
 #include <iostream>
 #include <algorithm>
+#include <optional>
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/System/Time.hpp>
 
-Board::Board( sf::RenderWindow* window, TextureHolder* holder, int tsize) 
-: mWindow(window )
-, mTextureHolder( holder )
-, tile_size(tsize)
-, mLastFrom(-1 , -1) 
-, mLastTo(-1 , -1)
-, mSelected(-1 , -1)
+Board::Board(sfmlContext context) 
+: mContext(context)
+, tile_size(context.tilesize)
+, mLastFrom(std::nullopt) 
+, mLastTo(std::nullopt)
+, mSelected(std::nullopt)
 , mColors{ sf::Color::Green , sf::Color::White , sf::Color(100, 100, 150) , sf::Color(100, 100, 250), sf::Color(200, 100 , 50) }
 , mBoardBackground(createBoardBack())
 {
@@ -24,39 +24,41 @@ Board::Board( sf::RenderWindow* window, TextureHolder* holder, int tsize)
 
 void Board::set(sf::Vector2u pos, Piece piece)
 {
-    mPieces.push_back( Coin{piece , this, tile_size , pos , mWindow , mTextureHolder} );
+    mPieces.push_back( Coin{piece , this, pos , mContext} );
 }
 
-void Board::move( sf::Vector2u from, sf::Vector2u to)
+void Board::move(sf::Vector2u from, sf::Vector2u to)
 {
-    mLastFrom = static_cast<sf::Vector2i>(from);
-    mLastTo = static_cast<sf::Vector2i>(to);
-    mSelected = sf::Vector2i{-1 , -1};
+    if(mContext.pieceDropCall == nullptr)
+    if(!mContext.pieceDropCall(from, to))
+        return;
+    mLastFrom = from;
+    mLastTo = to;
+    mSelected = std::nullopt;
 
     capture(to);
 
     for( auto& piece : mPieces)
         piece.move(from, to);
-    
 }
 
 void Board::capture(sf::Vector2u at)
 {
-    auto ptr = std::remove_if( mPieces.begin() , mPieces.end() , [& at](const Coin& ptr){
+    auto newend = std::remove_if( mPieces.begin() , mPieces.end() , [& at](const Coin& ptr){
         if(at == ptr.getFileRank())
             return true;
         return false;
     });
-    mPieces.erase(ptr, mPieces.end());
+    mPieces.erase(newend, mPieces.end());
 }
 
-void Board::setLast(sf::Vector2i from, sf::Vector2i to)
+void Board::setLast(std::optional<sf::Vector2u> from, std::optional<sf::Vector2u> to)
 {
     mLastFrom = from;
     mLastTo = to;
 }
 
-void Board::setSelected(sf::Vector2i at)
+void Board::setSelected(std::optional<sf::Vector2u> at)
 {
     mSelected = at;
 }
@@ -82,33 +84,34 @@ void Board::handleEvent(const sf::Event& event)
 
 void Board::loadResources()
 {
-    mTextureHolder->load(Textures::blackBishop, "Sprites/blackBishop.png");
-    mTextureHolder->load(Textures::blackKing, "Sprites/blackKing.png");
-    mTextureHolder->load(Textures::blackKnight, "Sprites/blackKnight.png");
-    mTextureHolder->load(Textures::blackPawn, "Sprites/blackPawn.png");
-    mTextureHolder->load(Textures::blackQueen, "Sprites/blackQueen.png");
-    mTextureHolder->load(Textures::blackRook, "Sprites/blackRook.png");
+    TextureHolder& th = *mContext.mTextureHolder;
+    th.load(Textures::blackBishop, "Sprites/blackBishop.png");
+    th.load(Textures::blackKing, "Sprites/blackKing.png");
+    th.load(Textures::blackKnight, "Sprites/blackKnight.png");
+    th.load(Textures::blackPawn, "Sprites/blackPawn.png");
+    th.load(Textures::blackQueen, "Sprites/blackQueen.png");
+    th.load(Textures::blackRook, "Sprites/blackRook.png");
     
-    mTextureHolder->load(Textures::whiteBishop, "Sprites/whiteBishop.png");
-    mTextureHolder->load(Textures::whiteKing, "Sprites/whiteKing.png");
-    mTextureHolder->load(Textures::whiteKnight, "Sprites/whiteKnight.png");
-    mTextureHolder->load(Textures::whitePawn, "Sprites/whitePawn.png");
-    mTextureHolder->load(Textures::whiteQueen, "Sprites/whiteQueen.png");
-    mTextureHolder->load(Textures::whiteRook, "Sprites/whiteRook.png"); 
+    th.load(Textures::whiteBishop, "Sprites/whiteBishop.png");
+    th.load(Textures::whiteKing, "Sprites/whiteKing.png");
+    th.load(Textures::whiteKnight, "Sprites/whiteKnight.png");
+    th.load(Textures::whitePawn, "Sprites/whitePawn.png");
+    th.load(Textures::whiteQueen, "Sprites/whiteQueen.png");
+    th.load(Textures::whiteRook, "Sprites/whiteRook.png"); 
 
-    mTextureHolder->get(Textures::blackBishop).setSmooth(true);
-    mTextureHolder->get(Textures::blackKing).setSmooth(true);
-    mTextureHolder->get(Textures::blackKnight).setSmooth(true);
-    mTextureHolder->get(Textures::blackPawn).setSmooth(true);
-    mTextureHolder->get(Textures::blackQueen).setSmooth(true);
-    mTextureHolder->get(Textures::blackRook).setSmooth(true);
+    th.get(Textures::blackBishop).setSmooth(true);
+    th.get(Textures::blackKing).setSmooth(true);
+    th.get(Textures::blackKnight).setSmooth(true);
+    th.get(Textures::blackPawn).setSmooth(true);
+    th.get(Textures::blackQueen).setSmooth(true);
+    th.get(Textures::blackRook).setSmooth(true);
     
-    mTextureHolder->get(Textures::whiteBishop).setSmooth(true);
-    mTextureHolder->get(Textures::whiteKing).setSmooth(true);
-    mTextureHolder->get(Textures::whiteKnight).setSmooth(true);
-    mTextureHolder->get(Textures::whitePawn).setSmooth(true);
-    mTextureHolder->get(Textures::whiteQueen).setSmooth(true);
-    mTextureHolder->get(Textures::whiteRook).setSmooth(true);
+    th.get(Textures::whiteBishop).setSmooth(true);
+    th.get(Textures::whiteKing).setSmooth(true);
+    th.get(Textures::whiteKnight).setSmooth(true);
+    th.get(Textures::whitePawn).setSmooth(true);
+    th.get(Textures::whiteQueen).setSmooth(true);
+    th.get(Textures::whiteRook).setSmooth(true);
     
 
 }
@@ -146,6 +149,8 @@ void Board::resetBoard()
         piece.setSize(tile_size);
         //centerOrigin(piece);
     }
+    setLast({},{});
+    setSelected({});
 }
 
 sf::Vector2i Board::getMouseToFileRank(const sf::Event& event) const
@@ -230,21 +235,21 @@ void Board::draw(sf::RenderTarget& target, sf::RenderStates states) const
     tile[2].setFillColor(mColors[colors::Selected]);
 
     states.blendMode = sf::BlendAlpha;
-    if(mLastFrom.x > -1)
+    if(mLastFrom.has_value())
     {
-        tile[0].setPosition( sf::Vector2f(mLastFrom.x * tile_size, (7 - mLastFrom.y ) * tile_size)) ;
+        tile[0].setPosition( sf::Vector2f(mLastFrom->x * tile_size, (7 - mLastFrom->y ) * tile_size)) ;
         target.draw(tile[0] , states);
     }
     
-    if(mLastTo.x > -1)
+    if(mLastTo.has_value())
     {
-        tile[1].setPosition( sf::Vector2f(mLastTo.x * tile_size, (7 - mLastTo.y ) * tile_size));
+        tile[1].setPosition( sf::Vector2f(mLastTo->x * tile_size, (7 - mLastTo->y ) * tile_size));
         target.draw(tile[1] , states);
     }
     
-    if(mSelected.x > -1)
+    if(mSelected.has_value())
     {
-        tile[2].setPosition( sf::Vector2f(mSelected.x * tile_size, (7 - mSelected.y ) * tile_size));
+        tile[2].setPosition( sf::Vector2f(mSelected->x * tile_size, (7 - mSelected->y ) * tile_size));
         target.draw(tile[2] , states);
     }
 

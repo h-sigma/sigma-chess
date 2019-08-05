@@ -1,8 +1,7 @@
 #include "UCI.hpp"
 #include <iostream>
-#include <chrono>
-#include <future>
 #include <cstdio>
+#include <string>
 #include <cstdlib>
 #include <unistd.h>
 
@@ -50,22 +49,15 @@ namespace UCI{
         std::cout << std::boolalpha << "debug " << val << std::noboolalpha << '\n' << std::flush;
     }
 
-    std::string getvalue()
-    {
-            std::string inp;
-            std::cin >> inp;
-            return inp;
-    }
 
     bool isReady()
     {
         std::cout << "isready\n";
+        std::string returnvalue;
 
-        std::future<std::string> input = std::async(getvalue);
-
-        if( input.wait_for( std::chrono::milliseconds(4000)) == std::future_status::ready)
+        if( std::cin >> returnvalue)
         {
-            if(input.get().find("readyok") != std::string::npos)
+            if(returnvalue.find("readyok") != std::string_view::npos)
                 return true;
         }
         return false;
@@ -83,9 +75,9 @@ namespace UCI{
 
     /*
     * position [fen  | startpos ]  moves  .... 
-	* set up the position described in fenstring on the internal board and
+	* set up the position described in fenstring_view on the internal board and
 	* play the moves on the internal chess board.
-	* if the game was played  from the start position the string "startpos" will be sent
+	* if the game was played  from the start position the string_view "startpos" will be sent
 	* Note: no "new" command is needed. However, if this position is from a different game than
 	* the last position sent to the engine, the GUI should have sent a "ucinewgame" inbetween.
     */
@@ -103,14 +95,14 @@ namespace UCI{
     void position(std::vector< std::string_view >& moves)
     {
         std::cout << "position startpos";
-        for(const auto& move : moves)
+        for(auto move : moves)
             std::cout << " " << move;
         std::cout << '\n' << std::flush;
     }
 
     void go()
     {
-
+        
     }
     void go(GoContext& )
     {

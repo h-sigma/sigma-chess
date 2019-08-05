@@ -7,7 +7,9 @@
 
 Application::Application()
 : mWindow( sf::VideoMode(60*8, 60*8), "E4E5", sf::Style::Close)
-, mBoard(&mWindow, &mTextureHolder, 60)
+, mTextureHolder()
+, mContext{&mWindow, &mTextureHolder, nullptr, 60}
+, mBoard(mContext)
 {
 }
 
@@ -16,12 +18,6 @@ void Application::run()
     sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
     sf::Time TimePerFrame = sf::seconds(1/60.f);
-
-	std::cout << "Starting now...";
-    std::chrono::system_clock::time_point  start = std::chrono::system_clock::now();
-	bool result = UCI::isReady();
-	if(result == true)
-		std::cout << "Time elapsed: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() << std::endl;
 
 	while (mWindow.isOpen())
 	{

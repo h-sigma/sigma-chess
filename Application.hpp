@@ -4,6 +4,7 @@
 #include "BoardAPI.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "ResourceHolder.hpp"
+#include "Types.hpp"
 
 namespace sf{
     class Time;
@@ -22,6 +23,7 @@ class Application
     private:
         sf::RenderWindow mWindow;
         TextureHolder mTextureHolder;
+        sfmlContext mContext;
         BoardAPI mBoard;
 };
 
